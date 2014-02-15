@@ -1,15 +1,17 @@
 from flask import Flask
 import time
-from juggernaut import Juggernaut
+from flask_sockets import Sockets
 
 app = Flask(__name__)
 
-jug = Juggernaut()
+sockets = Sockets(app)
 
-@app.route("/")
-def hello():
-    jug.publish('room', "WOOOORD")
-    return "Hello World!"
+@sockets.route("/")
+def hello(ws):
+     while True:
+        message = ws.receive()
+        ws.send(message)
+
 
 
 def freqCount(f):
