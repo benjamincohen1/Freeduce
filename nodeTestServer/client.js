@@ -4,7 +4,8 @@ var WebSocket = require( 'ws' );
 
 
 
-var sock = new WebSocket( 'http://localhost:8080' );
+// var sock = new WebSocket( 'ws://107.170.33.72:8080' );
+var sock = new WebSocket( 'ws://localhost:8080' );
 sock.on( 'open', function(){
 
     var jobsDone = 0;

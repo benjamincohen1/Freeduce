@@ -7,7 +7,7 @@ var fs = require( 'fs' );
 var WebSocketServer = WebSocket.Server;
 
 
-var wss = new WebSocketServer({port: 8080});
+var wss = new WebSocketServer({port: 8080, autoAcceptConnections: true});
 
 
 var nextJob = (function(){
@@ -38,7 +38,7 @@ var nextJob = (function(){
 
     var i = -1;
     return function(){
-        i++;
+        i++; i = i % 10000;
         console.log( 'getting job %d', i );
         return jobs[ i ];
     }
@@ -57,16 +57,20 @@ var reduceFn = (function(  ){
 
 
 
-
+var webSockets = {};
 wss.on( 'connection', function( ws ){
-
+    console.log( 'new connection' );
     var project;
+
+
+    var userID = ws.upgradeReq.url.substr(1);
+    webSockets[userID] = ws;
+
 
     ws.on( 'message', function( msg ){
         var msgData;
         try{
             msgData = JSON.parse( msg );
-            console.log( msgData );
         }catch( e ){
             //
         }
@@ -101,7 +105,7 @@ wss.on( 'connection', function( ws ){
     });
 
 });
-
+console.log( 'listening' );
 
 
 
