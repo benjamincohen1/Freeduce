@@ -15,14 +15,23 @@ var nextJob = (function(){
 
     var jobs = [] ;
     fs.readFile( '../out.txt', 'ascii', function( err, txt ){
-        // for( var i = 0; i < txt.length / 10000; i++ ){
-        //     jobs.push( txt.substring( i * 10000, (i + 1) * 10000) );
-        // }
-
-        // console.log( 'created %d jobs', jobs.length );
-        for( var i = 0; i < 10000; i++ ){
-            jobs.push( 'ASDFASDFASDF' );
+        for( var i = 0; i < txt.length / 10000; i++ ){
+            jobs.push( txt.substring( i * 10000, (i + 1) * 10000) );
+            jobs.push( '' );
         }
+
+        console.log( 'created %d jobs', jobs.length / 2 );
+        // for( var k = 0; k < 100; k++ ){
+        //     if ( k % 2  == 0 ){
+
+        //         jobs.push( 'A' );
+        //         jobs.push('');
+        //     }
+        //     else{
+        //         jobs.push( 'B' );
+        //         jobs.push('');
+        //     }
+        // }
 
     });
 
@@ -39,7 +48,7 @@ var runningTotal = {}
 var reduceFn = (function(  ){
     return function( r, total ){
         for( var k in  r ){
-            total[ k ] += (total[k] || 0) + r[k];
+            total[ k ] = (total[k] || 0) + r[k];
         }
     }
 })();
@@ -64,31 +73,26 @@ wss.on( 'connection', function( ws ){
 
 
         if( msgData && msgData.project ){
-            console.log( 'got a project name' );
             project = msgData.project;
             ws.send( JSON.stringify( msgData ) );
         }
 
         else if( msg == 'getjob' ){
-            console.log( 'sending job' );
-            ws.send( JSON.stringify({
-                job: nextJob()
-            }));
+            var j = nextJob();
+            if( j ){
+
+                ws.send( JSON.stringify({
+                    job: j
+                }));
+            }else{
+                console.log( 'DONE' );
+                console.log( runningTotal );
+            }
         }
 
 
         else if( msgData && msgData.result ){
             var job = nextJob();
-            console.log( 'sending a new job' );
-            var j = nextJob();
-            if( typeof j == 'undefined' ){
-                console.log( 'DONE' );
-                console.log( runningTotal );
-            }else{
-                ws.send( JSON.stringify({
-                    job: j
-                }));
-            }
             reduceFn( msgData.result, runningTotal );
 
         }

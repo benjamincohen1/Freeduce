@@ -41,6 +41,7 @@ sock.on( 'open', function(){
             sock.send( JSON.stringify({
                 'result': mapped
             }));
+            sock.send( 'getjob' );
         }
 
 
