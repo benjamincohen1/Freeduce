@@ -1,52 +1,52 @@
 'use strict';
 
-var WebSocket = require( 'ws' );
+var io = require( 'socket.io-client' );
 
 
 
-// var sock = new WebSocket( 'ws://107.170.33.72:8080' );
-var sock = new WebSocket( 'ws://localhost:8080' );
-sock.on( 'open', function(){
 
-    var jobsDone = 0;
-    sock.send( JSON.stringify ( {project: 'theproj' } ) );
+var sock = io.connect( 'ws://localhost:8080' );
 
-    var project;
-    var fnMap = function( e ){
-        var o = {};
-        for( var i = 0; i < e.length; i++ ){
-            o[ e[ i ] ] = (o[ e[i] ] || 0) + 1;
-        }
+var jobsDone = 0;
+sock.emit( 'mr', {project: 'theproj' } );
 
-        return o;
-    };
+var project;
+var fnMap = function( e ){
+    var o = {};
+    for( var i = 0; i < e.length; i++ ){
+        o[ e[ i ] ] = (o[ e[i] ] || 0) + 1;
+    }
 
-    sock.on( 'message', function( msg ){
+    return o;
+};
 
-        var msgData;
-        try{
-            msgData = JSON.parse( msg );
-        }catch( e ){
-            //
-        }
-
-        if( msgData  &&  msgData.project ){
-            project = msgData.project;
-            sock.send( 'getjob' );
-        }
-
-        else if( msgData && msgData.job ){
-            console.log( 'got job %d', jobsDone );
-            jobsDone += 1;
-            var mapped = fnMap( msgData.job );
-            sock.send( JSON.stringify({
-                'result': mapped
-            }));
-            sock.send( 'getjob' );
-        }
+sock.on( 'mr', function( msg ){
 
 
-    });
+
+   var msgData = msg;
+   // try{
+   // msgData = JSON.parse( msg );
+   // }catch( e ){
+   // //
+   // }
+
+   if( msgData  &&  msgData.project ){
+        project = msgData.project;
+        sock.emit( 'mr', 'getjob' );
+   }
+
+   else if( msgData && msgData.job ){
+        console.log( 'got job %d', jobsDone );
+        jobsDone += 1;
+        var mapped = fnMap( msgData.job );
+        sock.emit( 'mr', {
+            'result': mapped
+        });
+    sock.emit( 'mr', 'getjob' );
+   }
+
+
 });
 
 

@@ -3,13 +3,10 @@
 var WebSocket = require( "ws" );
 var fs = require( 'fs' );
 
-
-var WebSocketServer = WebSocket.Server;
-
-
-var wss = new WebSocketServer({port: 8080, autoAcceptConnections: true});
+var io = require( 'socket.io' ).listen( 8080 );
 
 
+console.log( 'init ');
 var nextJob = (function(){
 
 
@@ -38,7 +35,7 @@ var nextJob = (function(){
 
     var i = -1;
     return function(){
-        i++; i = i % 10000;
+        i++; // i = i % 10000;
         console.log( 'getting job %d', i );
         return jobs[ i ];
     }
@@ -57,37 +54,35 @@ var reduceFn = (function(  ){
 
 
 
-var webSockets = {};
-wss.on( 'connection', function( ws ){
+io.sockets.on( 'connection', function( ws ){
     console.log( 'new connection' );
     var project;
 
 
-    var userID = ws.upgradeReq.url.substr(1);
-    webSockets[userID] = ws;
 
 
-    ws.on( 'message', function( msg ){
-        var msgData;
-        try{
-            msgData = JSON.parse( msg );
-        }catch( e ){
-            //
-        }
+    ws.on( 'mr', function( msg ){
+        // console.log( msg );
+        var msgData = msg;
+        // try{
+        //     msgData = JSON.parse( msg );
+        // }catch( e ){
+        //     //
+        // }
 
 
         if( msgData && msgData.project ){
             project = msgData.project;
-            ws.send( JSON.stringify( msgData ) );
+            ws.emit( 'mr',  msgData  );
         }
 
         else if( msg == 'getjob' ){
             var j = nextJob();
             if( j ){
 
-                ws.send( JSON.stringify({
+                ws.emit('mr',  {
                     job: j
-                }));
+                });
             }else{
                 console.log( 'DONE' );
                 console.log( runningTotal );
