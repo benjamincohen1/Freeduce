@@ -9,7 +9,7 @@ def main():
 	l = len(words)
 
 	for x in xrange(3000):
-		for y in xrange(1000):
+		for y in xrange(3000):
 			largeFile.write(words[random.randint(0,l) - 1] + " ")
 
 
